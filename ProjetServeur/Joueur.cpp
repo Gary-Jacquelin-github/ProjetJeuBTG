@@ -1,16 +1,20 @@
 #include "Joueur.h"
 
-class Joueur {
-	std::string Prenom;
-	std::string Nom;
-	std::string Pseudo;
-	int socket;
 
-	int envoyerMessage(Joueur Destinataire, std::string message) {
-		return 0;
-	}
+Joueur::Joueur(int socket, std::string pseudo) {
+	Joueur::socket = socket;
+	Joueur::pseudo = pseudo;
+}
 
-	int recevoirMessage(Joueur Destinataire, std::string message) {
-		return 0;
-	}
-};
+Joueur::Joueur(int socket) {
+	Joueur::socket = socket;
+}
+
+
+int Joueur::envoyerMessage(Joueur Destinataire, std::string message) {
+	return 0;
+}
+
+int Joueur::recevoirMessage(Joueur Destinataire, std::string message) {
+	return 0;
+}
