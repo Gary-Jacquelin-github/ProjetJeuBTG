@@ -2,7 +2,8 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "gestionCommunication.h"
+#include "Lobby.h"
+#include "Salon.h"
 #include <iostream>
 #include <sstream>
 
@@ -65,9 +66,13 @@ int main()
 		if ((new_fd = accept(sock_fd, (SOCKADDR*)&their_addr, &sinsize)) == -1)
 			perror("Acceptation connexion: ");
 
+
+		t_threads[nbJoueur] = thread(Lobby::listenPlayer, new_fd);
+
+		/*
 		if (nbJoueur < nombreMaxJoueur) {
 			nbJoueur++;
-			t_threads[nbJoueur] = thread(communicationMain, new_fd, (nombreMaxJoueur - nbJoueur));
+			t_threads[nbJoueur] = thread(Salon::communicationMain, new_fd);
 		}
 		else {
 			string message = "Le serveur est plein veuillez reessayer plus tard\r\n";
@@ -76,6 +81,7 @@ int main()
 			}
 			closesocket(new_fd);
 		}
+		*/
 		
 	}
 

@@ -1,11 +1,15 @@
 #pragma once
+#include <string>
+#include <winsock2.h>
+
+using namespace std;
+
 class Lobby
 {
 	public:
-		int nbJoueur;
-		int id;
 		Lobby();
-		void creationLobby(int nbJoueur);
+		void static listenPlayer(SOCKET socket);
+		void static creationSalon(string nom, int nbJoueur);
 
 };
 
