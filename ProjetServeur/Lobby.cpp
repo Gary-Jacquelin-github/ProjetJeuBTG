@@ -1,5 +1,4 @@
 #include "Lobby.h"
-#include "Salon.h"
 
 #include <sstream>
 #include <iostream>
@@ -11,47 +10,51 @@ Lobby::Lobby() {
 
 }
 
+
+/// <summary>
+/// Fonction principale du lobby qui permet d'ecouter les commandes du joueur et d'agir en consequence
+/// </summary>
+/// <param name="socket"></param>
 void Lobby::listenPlayer(SOCKET socket) {
-	string message = "Ask action Exit/play/create (name)\r\n";
+	string message = "Ask pseudo\r\n";
 
 	if (send(socket, message.c_str(), message.length(), 0) < 0) {
 		perror("Error send: ");
 	}
 
-	char tmp[6000];
-	int nbBytes = 0;
-	string stringRecu;
+	string pseudo = Lobby::listenCommands(socket);
+
+	Joueur monJoueur = Joueur(socket, pseudo);
+
+	message = "Ask action Exit/play/create (name)\r\n";
+
+	if (send(socket, message.c_str(), message.length(), 0) < 0) {
+		perror("Error send: ");
+	}
+
 	int finDeSession = -1;
+
 	//On attend que le client mette fin à la conversation
 	while (finDeSession < 0) {
-		stringRecu = "";
 
-		//On prend toute la ligne
-		int test = stringRecu.find("\r\n");		
-		while (test < 0) {
-			if ((nbBytes = recv(socket, tmp, 6000, 0)) == -1) {
-				perror("Error recu: ");
-			}
-			tmp[nbBytes] = '\0';
-			stringRecu += tmp;
-			test = stringRecu.find("\r\n");
-			int finDeSession = stringRecu.find("Exit");
-		}
+		string stringRecu = Lobby::listenCommands(socket);
 
-		//On enlève l'entré
-		stringRecu = stringRecu.substr(0, stringRecu.length() - 2);
-
-		if (stringRecu == "play") {
+		int findPlay = stringRecu.find("play ");
+		if (findPlay >= 0) {
 			if (send(socket, "yo\r\n", 4, 0) == -1)
 				perror("Erreur d'envoi: \r\n");
+
+			string nom = stringRecu.substr(5, stringRecu.length());
+			Lobby::jumpInSalon(monJoueur, nom);
 		}
 
 		int findCreate = stringRecu.find("create ");
 		if (findCreate >= 0) {
-			string nom = stringRecu.substr(stringRecu.find("create "), stringRecu.length());
+			string nom = stringRecu.substr(7, stringRecu.length());
 			Lobby::creationSalon(nom, 6);
 			if (send(socket, "creation\r\n", 10, 0) == -1)
 				perror("Erreur d'envoi: \r\n");
+			Lobby::jumpInSalon(monJoueur, nom);
 		}
 
 		if (stringRecu == "Exit") {
@@ -64,14 +67,42 @@ void Lobby::listenPlayer(SOCKET socket) {
 	return;
 }
 
+/// <summary>
+/// On prend toute la ligne
+/// </summary>
+/// <param name="socket"></param>
+/// <returns></returns>
+string Lobby::listenCommands(SOCKET socket) {
+	char tmp[6000];
+	int nbBytes = 0;
+	string stringRecu = "";
+	int test = -1;
+	while (test < 0) {
+		if ((nbBytes = recv(socket, tmp, 6000, 0)) == -1) {
+			perror("Error recu: ");
+		}
+		tmp[nbBytes] = '\0';
+		stringRecu += tmp;
+		test = stringRecu.find("\r\n");
+	}
+
+	//On enlève l'entrée
+	stringRecu = stringRecu.substr(0, stringRecu.length() - 2);
+	return stringRecu;
+}
 
 void Lobby::creationSalon(string nom, int nbJoueur) {
 	//On utilise notre mutex pour ne pas creer deux salons ayant le même nom
+	
 	creationMutex.lock();
 	if (Salon::mapSalonNbJoueurs.count(nom) == 0) {
 		Salon::mapSalonNbJoueurs[nom] = 0;
-		Salon salon = Salon(nom, nbJoueur);
+		Salon monSalon = Salon(nom, nbJoueur);
+		Salon::mapNomSalonSalon[nom] = monSalon;
 	}
 	creationMutex.unlock();
 }
 
+void Lobby::jumpInSalon(Joueur joueur, string nom) {
+	Salon::mapNomSalonSalon[nom].communicationMain(joueur);
+}

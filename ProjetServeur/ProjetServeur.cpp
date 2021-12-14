@@ -66,13 +66,9 @@ int main()
 		if ((new_fd = accept(sock_fd, (SOCKADDR*)&their_addr, &sinsize)) == -1)
 			perror("Acceptation connexion: ");
 
-
-		t_threads[nbJoueur] = thread(Lobby::listenPlayer, new_fd);
-
-		/*
 		if (nbJoueur < nombreMaxJoueur) {
 			nbJoueur++;
-			t_threads[nbJoueur] = thread(Salon::communicationMain, new_fd);
+			t_threads[nbJoueur] = thread(Lobby::listenPlayer, new_fd);
 		}
 		else {
 			string message = "Le serveur est plein veuillez reessayer plus tard\r\n";
@@ -80,9 +76,7 @@ int main()
 				perror("Error send: ");
 			}
 			closesocket(new_fd);
-		}
-		*/
-		
+		}		
 	}
 
 	return 0;
