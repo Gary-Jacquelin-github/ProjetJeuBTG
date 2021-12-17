@@ -6,8 +6,10 @@
 
 mutex creationMutex;
 
+/// <summary>
+/// constructeur par defaut
+/// </summary>
 Lobby::Lobby() {
-
 }
 
 
@@ -16,8 +18,8 @@ Lobby::Lobby() {
 /// </summary>
 /// <param name="socket"></param>
 void Lobby::listenPlayer(SOCKET socket) {
-	string message = "Ask pseudo\r\n";
 
+	string message = "Ask pseudo\r\n";
 	if (send(socket, message.c_str(), message.length(), 0) < 0) {
 		perror("Error send: ");
 	}
@@ -27,7 +29,6 @@ void Lobby::listenPlayer(SOCKET socket) {
 	Joueur monJoueur = Joueur(socket, pseudo);
 
 	message = "Ask action Exit/play/create (name)\r\n";
-
 	if (send(socket, message.c_str(), message.length(), 0) < 0) {
 		perror("Error send: ");
 	}
@@ -50,8 +51,10 @@ void Lobby::listenPlayer(SOCKET socket) {
 
 		int findCreate = stringRecu.find("create ");
 		if (findCreate >= 0) {
-			string nom = stringRecu.substr(7, stringRecu.length());
-			Lobby::creationSalon(nom, 6);
+			stringRecu = stringRecu.substr(7, stringRecu.length());
+			string nom = stringRecu.substr(0, stringRecu.find(" "));
+			int nbJoueur = stoi(stringRecu.substr(nom.length(), stringRecu.length()));
+			Lobby::creationSalon(nom, nbJoueur);
 			if (send(socket, "creation\r\n", 10, 0) == -1)
 				perror("Erreur d'envoi: \r\n");
 			Lobby::jumpInSalon(monJoueur, nom);
@@ -80,6 +83,7 @@ string Lobby::listenCommands(SOCKET socket) {
 	while (test < 0) {
 		if ((nbBytes = recv(socket, tmp, 6000, 0)) == -1) {
 			perror("Error recu: ");
+			return "exit";
 		}
 		tmp[nbBytes] = '\0';
 		stringRecu += tmp;
@@ -91,18 +95,29 @@ string Lobby::listenCommands(SOCKET socket) {
 	return stringRecu;
 }
 
+/// <summary>
+/// On creer notre salon
+/// </summary>
+/// <param name="nom"></param>
+/// <param name="nbJoueur"></param>
 void Lobby::creationSalon(string nom, int nbJoueur) {
 	//On utilise notre mutex pour ne pas creer deux salons ayant le même nom
 	
 	creationMutex.lock();
-	if (Salon::mapSalonNbJoueurs.count(nom) == 0) {
-		Salon::mapSalonNbJoueurs[nom] = 0;
+	if (Salon::mapNomSalonSalon.count(nom) == 0) {
 		Salon monSalon = Salon(nom, nbJoueur);
 		Salon::mapNomSalonSalon[nom] = monSalon;
 	}
 	creationMutex.unlock();
 }
 
+/// <summary>
+/// On va dans le salon
+/// </summary>
+/// <param name="joueur"></param>
+/// <param name="nom"></param>
 void Lobby::jumpInSalon(Joueur joueur, string nom) {
-	Salon::mapNomSalonSalon[nom].communicationMain(joueur);
+	//Pas cool pour la mémoire mais bon c++ quoi...
+	Salon newSalon = Salon::mapNomSalonSalon[nom].copySalon();
+	newSalon.communicationMain(joueur);
 }

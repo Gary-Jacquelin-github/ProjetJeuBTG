@@ -27,6 +27,7 @@ class Joueur
 		int envoyerMessage(Joueur destinataire, std::string message);
 		int recevoirMessage(Joueur envoyeur, std::string message);
 		void rollDices();
+		int countDiceOccurences(short dice);
 };
 
 #endif

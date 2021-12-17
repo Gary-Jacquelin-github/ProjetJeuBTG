@@ -29,7 +29,7 @@ int main()
 	char date_string[100];  // Chaine de caractere contenant la date
 	SYSTEMTIME time_value;
 
-	const int nombreMaxJoueur = 2;
+	const int nombreMaxJoueur = 100;
 	int nbJoueur = 0;
 	
 	thread* t_threads = new thread[nombreMaxJoueur];

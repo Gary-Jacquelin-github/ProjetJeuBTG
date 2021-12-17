@@ -139,12 +139,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CacheSalon.cpp" />
+    <ClCompile Include="Estimation.cpp" />
     <ClCompile Include="Salon.cpp" />
     <ClCompile Include="Joueur.cpp" />
     <ClCompile Include="Lobby.cpp" />
     <ClCompile Include="ProjetServeur.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CacheSalon.h" />
+    <ClInclude Include="Estimation.h" />
     <ClInclude Include="Salon.h" />
     <ClInclude Include="Joueur.h" />
     <ClInclude Include="Lobby.h" />
