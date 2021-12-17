@@ -30,8 +30,6 @@ class Salon{
 	private:
 		string lastMessage;
 		bool needRoll;
-		bool win;
-		bool loose;
 		int tourEnCours;
 		int getNombreJoueurSalon();
 		void incrNombreJoueurSalon();
@@ -39,13 +37,13 @@ class Salon{
 		void sendMessage(Joueur joueur, string message);
 		void sendMessageAll(string message);
 		void sendRoll(Joueur joueur);
+		void diceRoll(Joueur joueur);
 		void attenteDebutPartie();
 		void joueurSuivant();
 		bool attenteTour(Joueur joueur);
 		void newTurn();
 		void checkScore(Estimation estimationActuelle);
 		bool changeScore(Joueur joueur, int increment);
-		void synchroRoll(Joueur joueur);
 		Joueur checkGagnant();
 
 };

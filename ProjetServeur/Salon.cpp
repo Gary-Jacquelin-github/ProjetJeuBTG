@@ -91,9 +91,7 @@ void Salon::communicationMain(Joueur joueur) {
 	while (finDeSession < 0 && Salon::mapSalonCacheSalon[this->nomSalon].isEnCours) {
 		//on regarde si il y a besoin de relancer les des
 		if (this->needRoll) {
-			joueur.rollDices();
-			Salon::sendRoll(joueur);
-			Salon::synchroRoll(joueur);
+			Salon::diceRoll(joueur);
 			this->needRoll = false;
 		}
 		//on attend son tour, si c'est une fin de tour on recommence
@@ -164,19 +162,6 @@ void Salon::decrNombreJoueurSalon(){
 }
 
 /// <summary>
-/// envoie le jet de dé du joueur
-/// </summary>
-/// <param name="joueur"></param>
-void Salon::sendRoll(Joueur joueur) {
-	string res = "SelfRolls";
-	for (short const& x : joueur.dices)
-		res += " " + to_string(x);
-
-	res += "\r\n";
-	Salon::sendMessage(joueur, res);
-}
-
-/// <summary>
 /// envoie un message au joueur
 /// </summary>
 /// <param name="joueur"></param>
@@ -199,11 +184,30 @@ void Salon::sendMessageAll(string message) {
 }
 
 /// <summary>
-/// On dit à tous le monde que c'est la fin du tour
+/// envoie le jet de dé du joueur
 /// </summary>
-void Salon::newTurn() {
-	Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours++;
-	this->needRoll = true;
+/// <param name="joueur"></param>
+void Salon::sendRoll(Joueur joueur) {
+	string res = "SelfRolls";
+	for (short const& x : joueur.dices)
+		res += " " + to_string(x);
+
+	res += "\r\n";
+	Salon::sendMessage(joueur, res);
+}
+
+/// <summary>
+/// Fait le jet de dé d'un joueur sur la list static
+/// </summary>
+/// <param name="joueur"></param>
+void Salon::diceRoll(Joueur joueur) {
+	//Obligé de faire comme ca pcq c++ c'est nul
+	for (auto it = Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.rbegin(); it != Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.rend(); it++) {
+		if (it->socket == joueur.socket) {
+			it->rollDices();
+			Salon::sendRoll(*it);
+		}
+	}
 }
 
 /// <summary>
@@ -226,12 +230,6 @@ bool Salon::attenteTour(Joueur joueur) {
 	while (Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours.socket != joueur.socket && Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours == this->tourEnCours) {
 		this_thread::sleep_for(100ms);
 	}
-	string message = "Sortie attente tour. socket en cours : " +
-		to_string(Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours.socket) +
-		"; Socket joueur : " + to_string(joueur.socket) + " tour static : " +
-		to_string(Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours) + " tour instance " +
-		to_string(this->tourEnCours) + " \r\n";
-	Salon::sendMessage(joueur, message);
 	//On est sortie pcq c'est le tour du joueur
 	if (Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours.socket == joueur.socket) {
 		string message = "AskEstimate \r\n";
@@ -242,6 +240,16 @@ bool Salon::attenteTour(Joueur joueur) {
 	this->tourEnCours = Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours;
 	this->needRoll = true;
 	return false;
+}
+
+
+/// <summary>
+/// On dit à tous le monde que c'est la fin du tour
+/// </summary>
+void Salon::newTurn() {
+	Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours++;
+	this->tourEnCours = Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours;
+	this->needRoll = true;
 }
 
 /// <summary>
@@ -257,15 +265,19 @@ void Salon::joueurSuivant() {
 		i++;
 	}
 	
-	if (i < cache.Joueurs.size()) {
+	Joueur potentielJoueurSuivant = cache.joueurEnCours;
+	int j = i;
+	//Il nous faut un Joueur suivant: donc pas le joueur qui viens de jouer et pas un joueur qui a un score de 0, on gere aussi une mauvaise utilisation de la fonction
+	while ((potentielJoueurSuivant.socket == cache.joueurEnCours.socket || potentielJoueurSuivant.score == 0) && j != i - 1) {
+		j = j < cache.Joueurs.size() ? j : 0; // on verifie de pas faire de npe
 		list<Joueur>::iterator it = cache.Joueurs.begin();
-		advance(it, i);
-		Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours = *it;
+		advance(it, j);
+		potentielJoueurSuivant = *it;
+		j++;
 	}
-	else {
-		Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours = cache.Joueurs.front();
-	}
+	Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours = potentielJoueurSuivant;
 }
+
 
 /// <summary>
 /// On regarde le resultat des estimation des joueurs
@@ -285,7 +297,7 @@ void Salon::checkScore(Estimation estimationActuelle) {
 	//Qu'es ce qu'on doit verifier
 	if (estimationActuelle.dodo) {
 		//Es-ce que la dernière estimation était bonne?
-		if (res >= cache.lastEstimation.dice) {
+		if (res >= cache.lastEstimation.nbDice) {
 			//On change le score 
 			perdu = Salon::changeScore(estimationActuelle.joueur, -1);
 			message += "Le joueur " + estimationActuelle.joueur.pseudo + " perd 1 dé. ";
@@ -299,7 +311,7 @@ void Salon::checkScore(Estimation estimationActuelle) {
 	}
 	else {
 		//Si on est en kalzone
-		if (res == cache.lastEstimation.dice) {
+		if (res == cache.lastEstimation.nbDice) {
 			Salon::changeScore(estimationActuelle.joueur, 1);
 			message += "Le joueur " + estimationActuelle.joueur.pseudo + " gagne 1 dé! ";
 		}
@@ -339,24 +351,7 @@ bool Salon::changeScore(Joueur joueur, int increment) {
 	}
 	Salon::mapSalonCacheSalon[this->nomSalon].Joueurs = localJoueurs;
 	synchroList.unlock();
-	return  perdu;
-}
-
-/// <summary>
-/// Syncronise le joueur et la liste statique pcq c++ c'est nul
-/// </summary>
-/// <param name="joueur"></param>
-void Salon::synchroRoll(Joueur joueur) {	
-	synchroList.lock();
-	//Obligé de faire comme ca pcq c++ c'est nul
-	list<Joueur> localJoueurs = Salon::mapSalonCacheSalon[this->nomSalon].Joueurs;
-	for (auto it = localJoueurs.rbegin(); it != localJoueurs.rend(); it++) {
-		if (it->socket == joueur.socket) {
-			it->dices = joueur.dices;
-		}
-	}
-	Salon::mapSalonCacheSalon[this->nomSalon].Joueurs = localJoueurs;
-	synchroList.unlock();
+	return perdu;
 }
 
 /// <summary>
@@ -367,7 +362,7 @@ Joueur Salon::checkGagnant() {
 	Joueur gagnant = Joueur(0, "");
 	list<Joueur> localJoueurs = Salon::mapSalonCacheSalon[this->nomSalon].Joueurs;
 	for (auto it = localJoueurs.rbegin(); it != localJoueurs.rend(); it++) {
-		if (it->score==0) {
+		if (it->score!=0) {
 			if (gagnant.socket == 0)
 				gagnant = *it;
 			else

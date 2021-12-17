@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-C:\Users\Bryan\Source\Repos\Gary-linkit\ProjetJeuBTG\ProjetClient\obj\Debug\net6.0-windows\
+C:\Users\tangu\source\repos\ProjetJeuBTG\ProjetClient\obj\Debug\net6.0-windows\
 ProjetClient
 none
 false
 TRACE;DEBUG;NET;NET6_0;NETCOREAPP
-C:\Users\Bryan\Source\Repos\Gary-linkit\ProjetJeuBTG\ProjetClient\App.xaml
+C:\Users\tangu\source\repos\ProjetJeuBTG\ProjetClient\App.xaml
 5935280353
 
 9132415526
-194-164764702
+194372043051
 createServer.xaml;game.xaml;listServer.xaml;MainWindow.xaml;rule.xaml;
 
-False
+True
 
