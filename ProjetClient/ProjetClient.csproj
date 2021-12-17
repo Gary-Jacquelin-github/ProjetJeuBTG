@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="dé.png" />
+    <None Remove="imgtitle.png" />
+    <None Remove="logoperudo.png" />
+    <None Remove="Perudo-couverture.jpg" />
+    <None Remove="wallpaper.jpg" />
+    <None Remove="wallpaper1.jpg" />
+    <None Remove="wallpaper2.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="dé.png" />
+    <Resource Include="imgtitle.png" />
+    <Resource Include="Perudo-couverture.jpg" />
+    <Resource Include="wallpaper1.jpg" />
+    <Resource Include="wallpaper2.jpg" />
+  </ItemGroup>
+
+</Project>
