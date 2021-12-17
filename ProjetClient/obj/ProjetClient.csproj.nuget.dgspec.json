@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Bryan\\Source\\Repos\\Gary-linkit\\ProjetJeuBTG\\ProjetClient\\ProjetClient.csproj": {}
+    "C:\\Users\\EnergyGO-Gary\\Documents\\Logiciel Avance\\ProjetJeuBTG\\ProjetClient\\ProjetClient.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Bryan\\Source\\Repos\\Gary-linkit\\ProjetJeuBTG\\ProjetClient\\ProjetClient.csproj": {
+    "C:\\Users\\EnergyGO-Gary\\Documents\\Logiciel Avance\\ProjetJeuBTG\\ProjetClient\\ProjetClient.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Bryan\\Source\\Repos\\Gary-linkit\\ProjetJeuBTG\\ProjetClient\\ProjetClient.csproj",
+        "projectUniqueName": "C:\\Users\\EnergyGO-Gary\\Documents\\Logiciel Avance\\ProjetJeuBTG\\ProjetClient\\ProjetClient.csproj",
         "projectName": "ProjetClient",
-        "projectPath": "C:\\Users\\Bryan\\Source\\Repos\\Gary-linkit\\ProjetJeuBTG\\ProjetClient\\ProjetClient.csproj",
-        "packagesPath": "C:\\Users\\Bryan\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Bryan\\Source\\Repos\\Gary-linkit\\ProjetJeuBTG\\ProjetClient\\obj\\",
+        "projectPath": "C:\\Users\\EnergyGO-Gary\\Documents\\Logiciel Avance\\ProjetJeuBTG\\ProjetClient\\ProjetClient.csproj",
+        "packagesPath": "C:\\Users\\EnergyGO-Gary\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\EnergyGO-Gary\\Documents\\Logiciel Avance\\ProjetJeuBTG\\ProjetClient\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Bryan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\EnergyGO-Gary\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [

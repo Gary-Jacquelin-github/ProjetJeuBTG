@@ -8,11 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="background.jpg" />
     <None Remove="dé.png" />
     <None Remove="imgtitle.png" />
     <None Remove="logoperudo.png" />
     <None Remove="Perudo-couverture.jpg" />
+    <None Remove="perudo.png" />
     <None Remove="wallpaper.jpg" />
+    <None Remove="wallpaper.png" />
     <None Remove="wallpaper1.jpg" />
     <None Remove="wallpaper2.jpg" />
   </ItemGroup>
@@ -21,7 +24,9 @@
     <Resource Include="dé.png" />
     <Resource Include="imgtitle.png" />
     <Resource Include="Perudo-couverture.jpg" />
-    <Resource Include="wallpaper1.jpg" />
+    <Resource Include="perudo.png" />
+    <Resource Include="background.jpg" />
+    <Resource Include="wallpaper.png" />
     <Resource Include="wallpaper2.jpg" />
   </ItemGroup>
 

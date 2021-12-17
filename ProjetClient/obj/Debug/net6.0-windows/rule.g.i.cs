@@ -69,7 +69,7 @@ namespace ProjetClient {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/ProjetClient;V1.0.0.0;component/rule.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/ProjetClient;component/rule.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\rule.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
