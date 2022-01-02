@@ -12,17 +12,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace ProjetClient
+namespace ProjetClient.Views
 {
     /// <summary>
-    /// Logique d'interaction pour createServer.xaml
+    /// Logique d'interaction pour listServer.xaml
     /// </summary>
-    public partial class createServer : Window
+    public partial class listServer : Window
     {
-        public createServer()
+        public listServer()
         {
             InitializeComponent();
-
         }
+
     }
 }

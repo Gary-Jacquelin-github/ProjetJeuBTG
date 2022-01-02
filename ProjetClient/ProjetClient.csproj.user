@@ -7,33 +7,33 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="createServer.xaml.cs">
+    <Compile Update="Views\createServer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="game.xaml.cs">
+    <Compile Update="Views\game.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="listServer.xaml.cs">
+    <Compile Update="Views\listServer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="rule.xaml.cs">
+    <Compile Update="Views\rule.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="createServer.xaml">
+    <Page Update="Views\createServer.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="game.xaml">
+    <Page Update="Views\game.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="listServer.xaml">
+    <Page Update="Views\listServer.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="MainWindow.xaml">
+    <Page Update="Views\MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="rule.xaml">
+    <Page Update="Views\rule.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
