@@ -28,7 +28,7 @@ void Lobby::listenPlayer(SOCKET socket) {
 
 	Joueur monJoueur = Joueur(socket, pseudo);
 
-	message = "Ask action Exit/play/create (name)\r\n";
+	message = "Ask action Exit/AskAvailableSalon/play/create (name)\r\n";
 	if (send(socket, message.c_str(), message.length(), 0) < 0) {
 		perror("Error send: ");
 	}
@@ -37,8 +37,16 @@ void Lobby::listenPlayer(SOCKET socket) {
 
 	//On attend que le client mette fin à la conversation
 	while (finDeSession < 0) {
-
+		
 		string stringRecu = Lobby::listenCommands(socket);
+
+		int findAsk = stringRecu.find("AskAvailableSalon");
+		if (findAsk >= 0) {
+			message = Salon::getSalonsInfos();
+			if (send(socket, message.c_str(), message.length(), 0) < 0) {
+				perror("Error send: ");
+			}
+		}
 
 		int findPlay = stringRecu.find("play ");
 		if (findPlay >= 0) {

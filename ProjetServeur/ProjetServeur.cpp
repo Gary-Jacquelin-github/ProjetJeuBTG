@@ -25,9 +25,6 @@ int main()
 	SOCKET new_fd;          // new_fd : socket de communication
 	SOCKADDR_IN my_addr;    // adresse de transport de la socket coté serveur
 	SOCKADDR_IN their_addr; // adresse de transport de la socket coté client
-	unsigned int sin_size;  // Taille d'une adresse de transport
-	char date_string[100];  // Chaine de caractere contenant la date
-	SYSTEMTIME time_value;
 
 	const int nombreMaxJoueur = 100;
 	int nbJoueur = 0;

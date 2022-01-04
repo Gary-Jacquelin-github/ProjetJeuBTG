@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <list>
+#include <mutex>
 
 #include "CacheSalon.h"
 #include "Joueur.h"
@@ -18,6 +19,7 @@ class Salon{
 
 		static map<string, Salon> mapNomSalonSalon;
 		static map<string, CacheSalon> mapSalonCacheSalon;
+		static string getSalonsInfos();
 
 		Salon();
 		Salon(string nom, int nbJoueur);
@@ -29,10 +31,8 @@ class Salon{
 
 	private:
 		string lastMessage;
-		bool needRoll;
-		bool win;
-		bool loose;
-		int tourEnCours;
+		bool needRoll = true;
+		int tourEnCours = 1;
 		int getNombreJoueurSalon();
 		void incrNombreJoueurSalon();
 		void decrNombreJoueurSalon();

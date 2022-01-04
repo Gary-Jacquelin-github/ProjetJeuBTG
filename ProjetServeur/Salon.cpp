@@ -3,7 +3,6 @@
 
 #include <sstream>
 #include <iostream>
-#include <mutex>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -49,12 +48,14 @@ Salon Salon::copySalon() {
 void Salon::communicationMain(Joueur joueur) {
 	//gestion du surnombre de joueurs
 	newJoueurMutex.lock();
+
 	if (Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.size() >= Salon::nbJoueurMax) {
 		newJoueurMutex.unlock();
 		string message = "Nous sommes désolé, ce salon est plein \r\n";
 		SOCKET socket = joueur.socket;
 		Salon::sendMessage(joueur, message);
-	}
+		return;
+	}	
 
 	//On ajoute le joueur a notre liste de joueurs
 	Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.push_back(joueur);
@@ -86,7 +87,7 @@ void Salon::communicationMain(Joueur joueur) {
 	//On commence la partie
 	string stringRecu;
 	int finDeSession = -1;
-	int trouveCommande = -1;
+	size_t trouveCommande = -1;
 	string commande;
 	while (finDeSession < 0 && Salon::mapSalonCacheSalon[this->nomSalon].isEnCours) {
 		//on regarde si il y a besoin de relancer les des
@@ -107,8 +108,8 @@ void Salon::communicationMain(Joueur joueur) {
 		trouveCommande = stringRecu.find(commande);
 		if (trouveCommande >= 0) {
 			//obligé de les mettre dans ses variable pcq c++ c'est nul
-			int tailleCommande = commande.size();
-			int tailleRecu = stringRecu.size() - 1;
+			size_t tailleCommande = commande.size();
+			size_t tailleRecu = stringRecu.size() - 1;
 			string commande = stringRecu.substr(tailleCommande, tailleRecu);
 			Estimation est = Estimation::Estimation(commande, joueur);
 			Salon::sendMessageAll(est.getMessage());
@@ -226,12 +227,7 @@ bool Salon::attenteTour(Joueur joueur) {
 	while (Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours.socket != joueur.socket && Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours == this->tourEnCours) {
 		this_thread::sleep_for(100ms);
 	}
-	string message = "Sortie attente tour. socket en cours : " +
-		to_string(Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours.socket) +
-		"; Socket joueur : " + to_string(joueur.socket) + " tour static : " +
-		to_string(Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours) + " tour instance " +
-		to_string(this->tourEnCours) + " \r\n";
-	Salon::sendMessage(joueur, message);
+
 	//On est sortie pcq c'est le tour du joueur
 	if (Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours.socket == joueur.socket) {
 		string message = "AskEstimate \r\n";
@@ -275,7 +271,7 @@ void Salon::checkScore(Estimation estimationActuelle) {
 	CacheSalon cache = Salon::mapSalonCacheSalon[this->nomSalon];
 	short wantedDice = cache.lastEstimation.dice;
 	int res = 0;	
-	bool perdu;
+	bool perdu = false;
 
 	for (Joueur x : cache.Joueurs)
 		res += x.countDiceOccurences(wantedDice);
@@ -328,7 +324,7 @@ void Salon::checkScore(Estimation estimationActuelle) {
 /// <returns>true si le joueur a perdu</returns>
 bool Salon::changeScore(Joueur joueur, int increment) {
 	synchroList.lock();
-	bool perdu;
+	bool perdu = false;
 	//Obligé de faire comme ca pcq c++ c'est nul
 	list<Joueur> localJoueurs = Salon::mapSalonCacheSalon[this->nomSalon].Joueurs;
 	for (auto it = localJoueurs.rbegin(); it != localJoueurs.rend(); it++) {
@@ -375,5 +371,25 @@ Joueur Salon::checkGagnant() {
 		}
 	}
 	return gagnant;
+}
+
+/// <summary>
+/// sert a retourner les elements de tous les salons en cours d'utilisation
+/// </summary>
+/// <returns></returns>
+string Salon::getSalonsInfos() {
+	//On les charge ici pour éviter des potentielles erreurs dans la boucle
+	map<string, Salon> mapNomSalonSalonLocal = Salon::mapNomSalonSalon;
+	map<string, CacheSalon> mapSalonCacheSalonLocal = Salon::mapSalonCacheSalon;
+
+	string res = "AnswerAvailableSalon";
+
+	for (auto it = mapNomSalonSalonLocal.rbegin(); it != mapNomSalonSalonLocal.rend(); it++) {
+		CacheSalon salon = mapSalonCacheSalonLocal[it->first];
+		if (!salon.isEnCours)
+			res += " " + it->first + " " + to_string(salon.nbJoueurs) + " " + to_string(it->second.nbJoueurMax);
+	}
+
+	return res;
 }
 
