@@ -48,7 +48,7 @@ void Lobby::listenPlayer(SOCKET socket) {
 			}
 		}
 
-		int findPlay = stringRecu.find("play ");
+		int findPlay = stringRecu.find("Play ");
 		if (findPlay >= 0) {
 			if (send(socket, "yo\r\n", 4, 0) == -1)
 				perror("Erreur d'envoi: \r\n");
@@ -57,7 +57,7 @@ void Lobby::listenPlayer(SOCKET socket) {
 			Lobby::jumpInSalon(monJoueur, nom);
 		}
 
-		int findCreate = stringRecu.find("create ");
+		int findCreate = stringRecu.find("Create ");
 		if (findCreate >= 0) {
 			stringRecu = stringRecu.substr(7, stringRecu.length());
 			string nom = stringRecu.substr(0, stringRecu.find(" "));

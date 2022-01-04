@@ -51,7 +51,7 @@ void Salon::communicationMain(Joueur joueur) {
 
 	if (Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.size() >= Salon::nbJoueurMax) {
 		newJoueurMutex.unlock();
-		string message = "Nous sommes désolé, ce salon est plein \r\n";
+		string message = "SalonFull";
 		SOCKET socket = joueur.socket;
 		Salon::sendMessage(joueur, message);
 		return;
@@ -62,11 +62,11 @@ void Salon::communicationMain(Joueur joueur) {
 	newJoueurMutex.unlock();
 	Salon::incrNombreJoueurSalon();
 	//On acceuille le joueur
-	string message = "Bien le bonjour " + joueur.pseudo + " \r\n";
+	string message = "Bien le bonjour " + joueur.pseudo;
 	SOCKET socket = joueur.socket;
 	Salon::sendMessage(joueur, message);
 
-	Salon::sendMessageAll(joueur.pseudo + " a rejoins le salon\r\n");
+	Salon::sendMessageAll("NewPlayer " + joueur.pseudo);
 	
 	//On regarde si on commence la commence la partie et notifies les joueurs du salon
 	if (Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.size() >= Salon::nbJoueurMax) {
@@ -77,10 +77,9 @@ void Salon::communicationMain(Joueur joueur) {
 		for (auto it = Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.begin(); it != Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.end(); it++) {
 			message += " " + it->pseudo;
 		}
-		message += "\r\n";
 	}
 	else
-		message = "Il manque " + to_string( Salon::nbJoueurMax - Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.size() ) + " joueurs \r\n";
+		message = "MissingPlayer  " + to_string( Salon::nbJoueurMax - Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.size() );
 			
 	Salon::sendMessageAll(message);
 
@@ -116,16 +115,24 @@ void Salon::communicationMain(Joueur joueur) {
 			size_t tailleRecu = stringRecu.size() - 1;
 			string commande = stringRecu.substr(tailleCommande, tailleRecu);
 			Estimation est = Estimation::Estimation(commande, joueur);
-			Salon::sendMessageAll(est.getMessage());
-			if (est.dodo || est.kalzone) {
-				Salon::checkScore(est);
-				Salon::newTurn();
+			Estimation oldEst = Salon::mapSalonCacheSalon[this->nomSalon].lastEstimation;
+
+			if (!est.isCorrect(oldEst)) {
+				Salon::sendMessage(joueur, "ErrorEstimate");
 			}
 			else {
-				Salon::mapSalonCacheSalon[this->nomSalon].lastEstimation = est;
-				Salon::joueurSuivant();
+				Salon::sendMessageAll(est.getMessage());
+				if (est.dodo || est.kalzone) {
+					Salon::checkScore(est);
+					Salon::mapSalonCacheSalon[this->nomSalon].lastEstimation = est;
+					Salon::newTurn();
+				}
+				else
+				{
+					Salon::mapSalonCacheSalon[this->nomSalon].lastEstimation = est;
+					Salon::joueurSuivant();
+				}
 			}
-
 		}
 
 		//Il peux partir à la fin de son tour
@@ -274,50 +281,64 @@ void Salon::joueurSuivant() {
 void Salon::checkScore(Estimation estimationActuelle) {
 	CacheSalon cache = Salon::mapSalonCacheSalon[this->nomSalon];
 	short wantedDice = cache.lastEstimation.dice;
+	Joueur joueurCible;
 	int res = 0;	
 	bool perdu = false;
+
+	string message = "ShowDice ";
+	for (Joueur jou : cache.Joueurs) {
+		message += jou.pseudo + " ";
+			for (int de : jou.dices) {
+				message += to_string(de) + " ";
+			}
+	}
+
+	Salon::sendMessageAll(message);
 
 	for (Joueur x : cache.Joueurs)
 		res += x.countDiceOccurences(wantedDice);
 
-	string message = "Il y avait " + to_string(res) + " fois le dé " + to_string(wantedDice) + ". ";
-	
+	message = "Result ";
 	//Qu'es ce qu'on doit verifier
 	if (estimationActuelle.dodo) {
 		//Es-ce que la dernière estimation était bonne?
 		if (res >= cache.lastEstimation.dice) {
 			//On change le score 
 			perdu = Salon::changeScore(estimationActuelle.joueur, -1);
-			message += "Le joueur " + estimationActuelle.joueur.pseudo + " perd 1 dé. ";
-			if (perdu) message += "\r\nLe joueur " + estimationActuelle.joueur.pseudo + " a perdu.";
+			joueurCible = estimationActuelle.joueur;
+			message += joueurCible.pseudo + " -1 ";
 		}
 		else {
 			perdu = Salon::changeScore(cache.lastEstimation.joueur, -1);
-			message += "Le joueur " + cache.lastEstimation.joueur.pseudo + " perd 1 dé. ";
-			if (perdu) message += "\r\nLe joueur " + cache.lastEstimation.joueur.pseudo + " a perdu.";
+			joueurCible = cache.lastEstimation.joueur;
+			message += joueurCible.pseudo + " -1 ";
 		}
 	}
 	else {
 		//Si on est en kalzone
 		if (res == cache.lastEstimation.dice) {
 			Salon::changeScore(estimationActuelle.joueur, 1);
-			message += "Le joueur " + estimationActuelle.joueur.pseudo + " gagne 1 dé! ";
+			joueurCible = estimationActuelle.joueur;
+			message += joueurCible.pseudo + " 1 ";
 		}
 		else {
 			perdu = Salon::changeScore(estimationActuelle.joueur, -1);
-			message += "Le joueur " + estimationActuelle.joueur.pseudo + " perd 1 dé. ";
-			if (perdu) message += "\r\nLe joueur " + estimationActuelle.joueur.pseudo + " a perdu.";
-		}
-	}
-	message += "\r\n";
-	if (perdu) {
-		Joueur gagnant = checkGagnant();
-		if (gagnant.socket != 0) {
-			message += "\r\nLe joueur " + gagnant.pseudo + " a gagné ! ! \r\n";
-			Salon::mapSalonCacheSalon[this->nomSalon].isEnCours = false;
+			joueurCible = estimationActuelle.joueur;
+			message += joueurCible.pseudo + " -1 ";
 		}
 	}
 	Salon::sendMessageAll(message);
+	if (perdu) {
+		message = "PlayerLoose " + joueurCible.pseudo;
+		Salon::sendMessageAll(message);
+
+		Joueur gagnant = checkGagnant();
+		if (gagnant.socket != 0) {
+			message = "PlayerWin " + gagnant.pseudo ;
+			Salon::sendMessageAll(message);
+			Salon::mapSalonCacheSalon[this->nomSalon].isEnCours = false;
+		}
+	}
 }
 
 /// <summary>

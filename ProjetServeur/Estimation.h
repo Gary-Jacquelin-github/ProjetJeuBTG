@@ -16,5 +16,6 @@ class Estimation
 		int nbDice;
 		Joueur joueur;
 		string getMessage();
+		bool isCorrect(Estimation oldEstimation);
 };
 

@@ -25,5 +25,20 @@ Estimation::Estimation(string commande, Joueur joueur) {
 }
 
 string Estimation::getMessage() {
-	return this->joueur.pseudo + " a annoncé " + (this->dodo ? "un Dodo! " : (this->kalzone ? "une Kalzone! " : ( "le " + to_string(this->dice) + " au moins " + to_string(this->nbDice) + " fois!"))) + " \r\n";
+	return  "GiveEstimate " + this->joueur.pseudo +  (this->dodo ? " Dodo" : (this->kalzone ? " Kalzone" : (" " + to_string(this->dice) + " " + to_string(this->nbDice)))) + " \r\n";
+}
+
+bool Estimation::isCorrect(Estimation oldEstimation) {
+	//si c'est la premiere estimation du tour elle est forcement bonne
+	if (oldEstimation.dodo || oldEstimation.kalzone || nbDice == 0)
+		return true;
+
+	//on check le cas des 1
+	if (oldEstimation.dice == 1 && this->dice != 1)
+		return this->nbDice > (oldEstimation.nbDice * 2);
+
+	if (oldEstimation.dice != 1 && this->dice == 1)
+		return (this->nbDice * 2) > oldEstimation.nbDice;
+
+	return this->nbDice > oldEstimation.nbDice;
 }
