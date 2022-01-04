@@ -70,10 +70,14 @@ void Salon::communicationMain(Joueur joueur) {
 	
 	//On regarde si on commence la commence la partie et notifies les joueurs du salon
 	if (Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.size() >= Salon::nbJoueurMax) {
-		message = "Tous les joueurs sont présents \r\n";
 		Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours = Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.front();
 		Salon::mapSalonCacheSalon[this->nomSalon].isEnCours = true;
 		Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours = 1;
+		message = "Players";
+		for (auto it = Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.begin(); it != Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.end(); it++) {
+			message += " " + it->pseudo;
+		}
+		message += "\r\n";
 	}
 	else
 		message = "Il manque " + to_string( Salon::nbJoueurMax - Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.size() ) + " joueurs \r\n";
