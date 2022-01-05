@@ -15,7 +15,6 @@ using namespace std;
 
 #define MYPORT 3490     // Port du point de connexion
 #define BACKLOG 10      // Combien de connexion en attente autorise-t-on ?
-#define MAXDATASIZE 100 // Nombre maximal d'octets à envoyer en une fois
 
 
 int main()
@@ -26,7 +25,7 @@ int main()
 	SOCKADDR_IN my_addr;    // adresse de transport de la socket coté serveur
 	SOCKADDR_IN their_addr; // adresse de transport de la socket coté client
 
-	const int nombreMaxJoueur = 100;
+	const int nombreMaxJoueur = 1000; //nombre de joueurs que l'on veut avant de redemarrer 
 	int nbJoueur = 0;
 	
 	thread* t_threads = new thread[nombreMaxJoueur];
@@ -42,7 +41,7 @@ int main()
 	my_addr.sin_port = htons(MYPORT);     // port, converti en reseau
 
 
-	std::cout << "Serva starto \r\n";
+	std::cout << "Server started \r\n";
 	// Demarrage du point de connexion : on ajoute l'adresse de transport dans la socket
 	if (bind(sock_fd, (SOCKADDR*)&my_addr, sizeof(my_addr)) == -1) {
 		perror("Creation de socket : ");

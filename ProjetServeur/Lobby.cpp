@@ -28,10 +28,8 @@ void Lobby::listenPlayer(SOCKET socket) {
 
 	Joueur monJoueur = Joueur(socket, pseudo);
 
-	message = "Ask action Exit/AskAvailableSalon/play/create (name)\r\n";
-	if (send(socket, message.c_str(), message.length(), 0) < 0) {
-		perror("Error send: ");
-	}
+	message = "Ask action Exit/AskAvailableSalon/Play/Create (name)\r\n";
+	Lobby::sendMessage(monJoueur, message);
 
 	int finDeSession = -1;
 
@@ -43,16 +41,11 @@ void Lobby::listenPlayer(SOCKET socket) {
 		int findAsk = stringRecu.find("AskAvailableSalon");
 		if (findAsk >= 0) {
 			message = Salon::getSalonsInfos();
-			if (send(socket, message.c_str(), message.length(), 0) < 0) {
-				perror("Error send: ");
-			}
+			Lobby::sendMessage(monJoueur, message);
 		}
 
 		int findPlay = stringRecu.find("Play ");
 		if (findPlay >= 0) {
-			if (send(socket, "yo\r\n", 4, 0) == -1)
-				perror("Erreur d'envoi: \r\n");
-
 			string nom = stringRecu.substr(5, stringRecu.length());
 			Lobby::jumpInSalon(monJoueur, nom);
 		}
@@ -63,8 +56,6 @@ void Lobby::listenPlayer(SOCKET socket) {
 			string nom = stringRecu.substr(0, stringRecu.find(" "));
 			int nbJoueur = stoi(stringRecu.substr(nom.length(), stringRecu.length()));
 			Lobby::creationSalon(nom, nbJoueur);
-			if (send(socket, "creation\r\n", 10, 0) == -1)
-				perror("Erreur d'envoi: \r\n");
 			Lobby::jumpInSalon(monJoueur, nom);
 		}
 
@@ -104,6 +95,17 @@ string Lobby::listenCommands(SOCKET socket) {
 }
 
 /// <summary>
+/// envoie un message au joueur
+/// </summary>
+/// <param name="joueur"></param>
+/// <param name="message"></param>
+void Lobby::sendMessage(Joueur joueur, string message) {
+	if (send(joueur.socket, message.c_str(), message.length(), 0) < 0) {
+		perror("Error send: ");
+	}
+}
+
+/// <summary>
 /// On creer notre salon
 /// </summary>
 /// <param name="nom"></param>
@@ -128,4 +130,17 @@ void Lobby::jumpInSalon(Joueur joueur, string nom) {
 	//Pas cool pour la mémoire mais bon c++ quoi...
 	Salon newSalon = Salon::mapNomSalonSalon[nom].copySalon();
 	newSalon.communicationMain(joueur);
+	string message = "AskRestart";
+	bool wantRestart = true;
+	while (wantRestart) {
+		Lobby::sendMessage(joueur, message);
+		string stringRecu = Lobby::listenCommands(joueur.socket);
+		if (stringRecu == "Restart") {
+			newSalon.communicationMain(joueur);
+		}
+		else
+		{
+			wantRestart = false;
+		}
+	}
 }

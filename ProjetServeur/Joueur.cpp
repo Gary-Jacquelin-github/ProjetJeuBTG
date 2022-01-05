@@ -6,7 +6,6 @@
 /// constructeur par defaut
 /// </summary>
 Joueur::Joueur() {
-	Joueur::score = 5;
 }
 
 /// <summary>
@@ -15,7 +14,6 @@ Joueur::Joueur() {
 /// <param name="socket"></param>
 Joueur::Joueur(SOCKET socket) {
 	Joueur::socket = socket;
-	Joueur::score = 5;
 }
 
 /// <summary>
@@ -26,7 +24,6 @@ Joueur::Joueur(SOCKET socket) {
 Joueur::Joueur(SOCKET socket, std::string pseudo) {
 	Joueur::socket = socket;
 	Joueur::pseudo = pseudo;
-	Joueur::score = 5;
 }
 
 

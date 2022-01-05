@@ -53,7 +53,7 @@ void Salon::communicationMain(Joueur joueur) {
 		newJoueurMutex.unlock();
 		string message = "SalonFull";
 		SOCKET socket = joueur.socket;
-		Salon::sendMessage(joueur, message);
+		Lobby::sendMessage(joueur, message);
 		return;
 	}	
 
@@ -61,13 +61,12 @@ void Salon::communicationMain(Joueur joueur) {
 	Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.push_back(joueur);
 	newJoueurMutex.unlock();
 	Salon::incrNombreJoueurSalon();
-	//On acceuille le joueur
-	string message = "Bien le bonjour " + joueur.pseudo;
-	SOCKET socket = joueur.socket;
-	Salon::sendMessage(joueur, message);
 
-	Salon::sendMessageAll("NewPlayer " + joueur.pseudo);
-	
+	//On acceuille le joueur
+	SOCKET socket = joueur.socket;
+	string message = "NewPlayer " + joueur.pseudo;
+	Salon::sendMessageAll(message);
+
 	//On regarde si on commence la commence la partie et notifies les joueurs du salon
 	if (Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.size() >= Salon::nbJoueurMax) {
 		Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours = Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.front();
@@ -79,8 +78,8 @@ void Salon::communicationMain(Joueur joueur) {
 		}
 	}
 	else
-		message = "MissingPlayer  " + to_string( Salon::nbJoueurMax - Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.size() );
-			
+		message = "MissingPlayer  " + to_string(Salon::nbJoueurMax - Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.size());
+
 	Salon::sendMessageAll(message);
 
 	//On attend le debut de la partie
@@ -88,22 +87,20 @@ void Salon::communicationMain(Joueur joueur) {
 	this->needRoll = true;
 
 	//On commence la partie
-	string stringRecu;
 	int finDeSession = -1;
-	size_t trouveCommande = -1;
+	string stringRecu;
+	int trouveCommande = -1;
 	string commande;
 	while (finDeSession < 0 && Salon::mapSalonCacheSalon[this->nomSalon].isEnCours) {
 		//on regarde si il y a besoin de relancer les des
 		if (this->needRoll) {
-			joueur.rollDices();
-			Salon::sendRoll(joueur);
 			Salon::synchroRoll(joueur);
 			this->needRoll = false;
 		}
 		//on attend son tour, si c'est une fin de tour on recommence
 		if (!Salon::attenteTour(joueur))
 			continue;
-
+		
 		//Recoit commande
 		stringRecu = Lobby::listenCommands(socket);
 
@@ -111,14 +108,14 @@ void Salon::communicationMain(Joueur joueur) {
 		trouveCommande = stringRecu.find(commande);
 		if (trouveCommande >= 0) {
 			//obligé de les mettre dans ses variable pcq c++ c'est nul
-			size_t tailleCommande = commande.size();
-			size_t tailleRecu = stringRecu.size() - 1;
+			int tailleCommande = commande.size();
+			int tailleRecu = stringRecu.size() - 1;
 			string commande = stringRecu.substr(tailleCommande, tailleRecu);
 			Estimation est = Estimation::Estimation(commande, joueur);
 			Estimation oldEst = Salon::mapSalonCacheSalon[this->nomSalon].lastEstimation;
 
 			if (!est.isCorrect(oldEst)) {
-				Salon::sendMessage(joueur, "ErrorEstimate");
+				Lobby::sendMessage(joueur, "ErrorEstimate");
 			}
 			else {
 				Salon::sendMessageAll(est.getMessage());
@@ -138,21 +135,25 @@ void Salon::communicationMain(Joueur joueur) {
 		//Il peux partir à la fin de son tour
 		if (stringRecu == "Exit") {
 			finDeSession = 1;
-			Salon::sendMessage(joueur, "adios \r\n");
-		}
+			Lobby::sendMessage(joueur, "adios \r\n");
+		}			
 	}
+
 	//On enlève le joueur de la liste
 	for (auto it = Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.begin(); it != Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.end();) {
 		if (it->socket == joueur.socket) {
 			it = Salon::mapSalonCacheSalon[this->nomSalon].Joueurs.erase(it);
 		}
-		else {
-			++it;
+		else
+		{
+			it++;
 		}
 	}
+	Salon::sendMessageAll("PlayerLeft " + joueur.pseudo);
 	Salon::decrNombreJoueurSalon();
 	return;	
 }
+
 
 /// <summary>
 /// tout est dans le titre
@@ -185,18 +186,7 @@ void Salon::sendRoll(Joueur joueur) {
 		res += " " + to_string(x);
 
 	res += "\r\n";
-	Salon::sendMessage(joueur, res);
-}
-
-/// <summary>
-/// envoie un message au joueur
-/// </summary>
-/// <param name="joueur"></param>
-/// <param name="message"></param>
-void Salon::sendMessage(Joueur joueur, string message) {
-	if (send(joueur.socket, message.c_str(), message.length(), 0) < 0) {
-		perror("Error send: ");
-	}
+	Lobby::sendMessage(joueur, res);
 }
 
 /// <summary>
@@ -206,7 +196,7 @@ void Salon::sendMessage(Joueur joueur, string message) {
 void Salon::sendMessageAll(string message) {
 	for (auto const& x : Salon::mapSalonCacheSalon[this->nomSalon].Joueurs)
 	{
-		Salon::sendMessage(x, message);
+		Lobby::sendMessage(x, message);
 	}
 }
 
@@ -215,6 +205,7 @@ void Salon::sendMessageAll(string message) {
 /// </summary>
 void Salon::newTurn() {
 	Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours++;
+	this->tourEnCours = Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours;
 	this->needRoll = true;
 }
 
@@ -234,18 +225,18 @@ void Salon::attenteDebutPartie() {
 /// <param name="joueur"></param>
 /// <returns>true si c'est reellement son tour</returns>
 bool Salon::attenteTour(Joueur joueur) {
-	//On attend la fin du tour de jeu ou que ce soit au joueur de jouer.
-	while (Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours.socket != joueur.socket && Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours == this->tourEnCours) {
+	// On attend la fin du tour de jeu ou que ce soit au joueur de jouer.
+	while (Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours.socket != joueur.socket && Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours == this->tourEnCours && Salon::mapSalonCacheSalon[this->nomSalon].isEnCours != false) {
 		this_thread::sleep_for(100ms);
 	}
 
-	//On est sortie pcq c'est le tour du joueur
+	// On est sortie pcq c'est le tour du joueur
 	if (Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours.socket == joueur.socket) {
 		string message = "AskEstimate \r\n";
-		Salon::sendMessage(joueur, message);
+		Lobby::sendMessage(joueur, message);
 		return true;
 	}
-	//C'est un nouveau tour
+	// C'est la fin de l'autre tour
 	this->tourEnCours = Salon::mapSalonCacheSalon[this->nomSalon].tourEnCours;
 	this->needRoll = true;
 	return false;
@@ -259,19 +250,22 @@ void Salon::joueurSuivant() {
 	//On le met ici pour limiter les recherches dans la map, on recherche encore pour les affectation pcq les pointeur et c++ sont mal fait
 	CacheSalon cache = Salon::mapSalonCacheSalon[this->nomSalon];
 	for (auto const& x : cache.Joueurs) {
-		if(x.socket == cache.joueurEnCours.socket)
+		if (x.socket == cache.joueurEnCours.socket)
 			break;
 		i++;
 	}
-	
-	if (i < cache.Joueurs.size()) {
+
+	Joueur potentielJoueurSuivant = cache.joueurEnCours;
+	int j = i;
+	//Il nous faut un Joueur suivant: donc pas le joueur qui viens de jouer et pas un joueur qui a un score de 0, on gere aussi une mauvaise utilisation de la fonction
+	while ((potentielJoueurSuivant.socket == cache.joueurEnCours.socket || potentielJoueurSuivant.score == 0) && j != i - 1) {
+		j = j < cache.Joueurs.size() ? j : 0; // on verifie de pas faire de npe
 		list<Joueur>::iterator it = cache.Joueurs.begin();
-		advance(it, i);
-		Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours = *it;
+		advance(it, j);
+		potentielJoueurSuivant = *it;
+		j++;
 	}
-	else {
-		Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours = cache.Joueurs.front();
-	}
+	Salon::mapSalonCacheSalon[this->nomSalon].joueurEnCours = potentielJoueurSuivant;
 }
 
 /// <summary>
@@ -299,11 +293,11 @@ void Salon::checkScore(Estimation estimationActuelle) {
 		res += x.countDiceOccurences(wantedDice);
 
 	message = "Result ";
-	//Qu'es ce qu'on doit verifier
+	// Qu'es ce qu'on doit verifier
 	if (estimationActuelle.dodo) {
-		//Es-ce que la dernière estimation était bonne?
+		// Es-ce que la dernière estimation était bonne?
 		if (res >= cache.lastEstimation.dice) {
-			//On change le score 
+			// On change le score 
 			perdu = Salon::changeScore(estimationActuelle.joueur, -1);
 			joueurCible = estimationActuelle.joueur;
 			message += joueurCible.pseudo + " -1 ";
@@ -315,7 +309,7 @@ void Salon::checkScore(Estimation estimationActuelle) {
 		}
 	}
 	else {
-		//Si on est en kalzone
+		// Si on est en kalzone
 		if (res == cache.lastEstimation.dice) {
 			Salon::changeScore(estimationActuelle.joueur, 1);
 			joueurCible = estimationActuelle.joueur;
@@ -327,11 +321,13 @@ void Salon::checkScore(Estimation estimationActuelle) {
 			message += joueurCible.pseudo + " -1 ";
 		}
 	}
+	// On dit à tt les joueurs le resultat
 	Salon::sendMessageAll(message);
+	// On check si un joueur n'a plus de de et a donc perdu
 	if (perdu) {
 		message = "PlayerLoose " + joueurCible.pseudo;
 		Salon::sendMessageAll(message);
-
+		// On regarde si quelqu'un a gagné
 		Joueur gagnant = checkGagnant();
 		if (gagnant.socket != 0) {
 			message = "PlayerWin " + gagnant.pseudo ;
@@ -373,11 +369,13 @@ void Salon::synchroRoll(Joueur joueur) {
 	list<Joueur> localJoueurs = Salon::mapSalonCacheSalon[this->nomSalon].Joueurs;
 	for (auto it = localJoueurs.rbegin(); it != localJoueurs.rend(); it++) {
 		if (it->socket == joueur.socket) {
-			it->dices = joueur.dices;
+			it->rollDices();
+			joueur.dices = it->dices;
 		}
 	}
 	Salon::mapSalonCacheSalon[this->nomSalon].Joueurs = localJoueurs;
 	synchroList.unlock();
+	Salon::sendRoll(joueur);
 }
 
 /// <summary>
@@ -388,7 +386,7 @@ Joueur Salon::checkGagnant() {
 	Joueur gagnant = Joueur(0, "");
 	list<Joueur> localJoueurs = Salon::mapSalonCacheSalon[this->nomSalon].Joueurs;
 	for (auto it = localJoueurs.rbegin(); it != localJoueurs.rend(); it++) {
-		if (it->score==0) {
+		if (it->score!=0) {
 			if (gagnant.socket == 0)
 				gagnant = *it;
 			else

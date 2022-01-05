@@ -36,7 +36,6 @@ class Salon{
 		int getNombreJoueurSalon();
 		void incrNombreJoueurSalon();
 		void decrNombreJoueurSalon();
-		void sendMessage(Joueur joueur, string message);
 		void sendMessageAll(string message);
 		void sendRoll(Joueur joueur);
 		void attenteDebutPartie();
@@ -47,5 +46,6 @@ class Salon{
 		bool changeScore(Joueur joueur, int increment);
 		void synchroRoll(Joueur joueur);
 		Joueur checkGagnant();
+		
 
 };
