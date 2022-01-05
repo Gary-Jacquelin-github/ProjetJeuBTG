@@ -21,7 +21,7 @@ class Joueur
 		string prenom;
 		string nom;
 		string pseudo;
-		int score = 1;
+		int score = 5;
 		SOCKET socket;
 		list<short> dices;
 		int envoyerMessage(Joueur destinataire, std::string message);
