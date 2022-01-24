@@ -1,9 +1,6 @@
 ./vs
 /debug
 /.vs
-/ProjetServeur/Debug
-/ProjetServeur/x64/Debug
-/x64/Debug
 /ProjetClient/obj
 /ProjetClient/.vs/ProjetClient
 /ProjetClient/bin/Debug/net6.0-windows
